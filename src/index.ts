@@ -20,6 +20,14 @@ const rl = readline.createInterface({
   prompt: '> '
 })
 
+/**
+ * Adds a contact to the contact list.
+ * 
+ * @param {string} name - The name of the contact.
+ * @param {string} email - The email address of the contact.
+ * @param {string} phone - The phone number of the contact.
+ * @returns {Promise<void>} A promise that resolves when the contact has been added.
+ */
 async function addContact(name: string, email: string, phone: string) {
   await client.hSet(name, {
     email: email,
@@ -27,8 +35,12 @@ async function addContact(name: string, email: string, phone: string) {
   })
   console.log(`${name} foi salvo na lista de contatos.`)
 }
-
-async function listContacts() {
+/**
+ * Lists all contacts stored in the contact list.
+ * 
+ * @returns {Promise<void>} A promise that resolves when the contact list has been retrieved and logged.
+ */
+async function listContacts(): Promise<void> {
   try {
     const keys = await client.keys('*')
     if (keys.length === 0) {
@@ -48,13 +60,25 @@ async function listContacts() {
     console.error('Erro ao listar contatos:', err)
   }
 }
-
+/**
+ * Updates an existing contact's email and phone information.
+ * 
+ * @param {string} id - The unique identifier of the contact.
+ * @param {string} email - The new email address of the contact.
+ * @param {string} phone - The new phone number of the contact.
+ * @returns {Promise<void>} A promise that resolves when the contact has been updated.
+ */
 async function updateContact(id: string, email: string, phone: string): Promise<void> {
   if(!(await client.exists(id))) return console.log(`Nenhum contato encontrado com o nome de '${id}'`)
       
   await addContact(id, email, phone)
 }
-
+/**
+ * Removes a contact from the contact list.
+ * 
+ * @param {string} id - The unique identifier of the contact to be removed.
+ * @returns {Promise<void>} A promise that resolves when the contact has been removed.
+ */
 async function removeContact(id: string): Promise<void> {
   if (!await client.exists(id)) return console.log(`Nenhum contato encontrado com o nome de '${id}'`)
     
@@ -62,6 +86,13 @@ async function removeContact(id: string): Promise<void> {
   console.log(`Contato '${id}' foi deletado.`)
 }
 
+/**
+ * Renames an existing contact by changing its unique identifier.
+ * 
+ * @param {string} id - The current unique identifier of the contact.
+ * @param {string} newId - The new unique identifier for the contact.
+ * @returns {Promise<void>} A promise that resolves when the contact has been renamed.
+ */
 async function renameContact(id: string, newId: string): Promise<void> {
   if(!await client.exists(id)) return console.log(`Nenhum contato encontrado com o nome de '${id}'`)
   
@@ -69,6 +100,13 @@ async function renameContact(id: string, newId: string): Promise<void> {
   await client.del(id)
   console.log(`Contato renomeado de '${id}' para '${newId}.'`)
 }
+
+/**
+ * Processes a command line input and executes the corresponding contact management command.
+ * 
+ * @param {string} line - The command line input.
+ * @returns {Promise<void>} A promise that resolves when the command has been processed.
+ */
 async function processCommand(line: string) {
   const args: string[] = line.trim().split(' ')
   const command: string = args[0]
@@ -109,11 +147,15 @@ async function processCommand(line: string) {
     console.log('Comando inválido ou argumentos.')
     printHelp()
   }
-  
+
   rl.prompt()
 }
 
-function printHelp() {
+/**
+ * Prints the help message with a list of available commands and their usage.
+ * @returns {void}
+ */
+function printHelp(): void {
   console.log('Comandos disponíveis:')
   console.log('add | att <nome> <email> <phone> - Adiciona / Atualiza um contato.')
   console.log('l                                - Lista todos os contatos.')
@@ -123,7 +165,11 @@ function printHelp() {
   console.log('*                                - Encerra o programa.')
 }
 
-async function main (){
+/**
+ * program's execution entry point
+ * @returns {Promise<void>}
+ */
+async function main (): Promise<void>{
   await client.connect() 
   
   console.log(`Digite 'h' para ver a ajuda.`)
